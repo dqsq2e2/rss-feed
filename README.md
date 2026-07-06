@@ -1,6 +1,6 @@
 # RSS Feed Plugin
 
-通过 Ting Reader 的能力化插件系统发布签名 RSS。插件只声明 `http_route`，不需要后端新增 RSS 专用路由。
+通过 Ting Reader 的能力化插件系统发布签名 RSS。插件只声明 `http_route`
 
 插件也提供一个“RSS 订阅”面板：在插件入口中打开后，可搜索书籍、选择单本书并复制该书的 RSS 订阅链接。
 
