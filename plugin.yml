@@ -1,7 +1,7 @@
 id: rss-feed
 name: RSS Feed
 version: 1.0.0
-min_core_version: 1.4.8
+min_core_version: 1.5.0
 author: Ting Reader Team
 description:
   zh: 通过签名公共插件路由向外部 RSS 阅读器发布当前用户可访问的馆藏更新。
