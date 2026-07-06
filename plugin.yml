@@ -1,0 +1,104 @@
+id: rss-feed
+name: RSS Feed
+version: 1.0.0
+min_core_version: 1.4.8
+author: Ting Reader Team
+description:
+  zh: 通过签名公共插件路由向外部 RSS 阅读器发布当前用户可访问的馆藏更新。
+  en: Publish signed RSS feeds for the books accessible to the current user.
+runtime: javascript
+license: MIT
+repo: dqsq2e2/rss-feed
+entry_point: plugin.js
+capabilities:
+- id: rss.panel
+  kind: ui_extension
+  invoke: openRssPanel
+  slot: global.floating_action
+  title:
+    zh: RSS 订阅
+    en: RSS Feeds
+  icon: rss
+  priority: 30
+  render:
+    mode: web_container
+    entry: ui/rss.html
+  contexts:
+  - global
+- id: rss.book_panel
+  kind: ui_extension
+  invoke: openRssPanel
+  slot: book.detail_action
+  title:
+    zh: RSS 订阅
+    en: RSS Feed
+  icon: rss
+  priority: 70
+  render:
+    mode: web_container
+    entry: ui/rss.html
+  contexts:
+  - book
+- id: rss.feed
+  kind: http_route
+  invoke: generateRssFeed
+  route:
+    method: GET
+    path: /rss/:library_id.xml
+    auth: signed
+- id: rss.book
+  kind: http_route
+  invoke: generateBookRssFeed
+  route:
+    method: GET
+    path: /rss/book/:book_id.xml
+    auth: signed
+- id: rss.cover
+  kind: http_route
+  invoke: generateCoverImage
+  route:
+    method: GET
+    path: /rss/cover/:book_id
+    auth: signed
+- id: rss.media
+  kind: http_route
+  invoke: redirectChapterMedia
+  route:
+    method: GET
+    path: /rss/media/:chapter_id
+    auth: signed
+- id: rss.tools
+  kind: tool_provider
+  invoke: invokeTool
+  tools:
+  - name: rss.state
+    description: List accessible books for the RSS subscription UI.
+  - name: rss.sign_book_feed
+    description: Generate a signed RSS subscription URL for a selected book.
+  - name: rss.disable_link
+    description: Disable a generated RSS subscription URL.
+  - name: rss.enable_link
+    description: Re-enable a generated RSS subscription URL.
+  - name: rss.delete_link
+    description: Delete and revoke a generated RSS subscription URL.
+config_schema:
+  type: object
+  properties:
+    public_base_url:
+      type: string
+      title:
+        zh: 对外访问地址
+        en: Public base URL
+      description:
+        zh: 可选。填写反向代理后的公开地址，例如 https://reader.example.com；留空时从请求头推断。
+        en: Optional public origin, such as https://reader.example.com. When empty, it is inferred from request headers.
+      placeholder: https://reader.example.com
+permissions:
+- type: books_read
+- type: chapters_read
+- type: media_read_url
+- type: plugin_route_sign
+- type: cache_read
+- type: cache_write
+- type: file_read
+  value: .

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RSS 订阅</title>
+  <link rel="stylesheet" href="./rss.css">
+</head>
+<body>
+  <main class="app">
+    <header>
+      <h1>RSS 订阅</h1>
+      <button id="refreshBtn" type="button" title="刷新">刷新</button>
+    </header>
+
+    <nav class="tabs" aria-label="RSS 订阅视图">
+      <button id="generateTab" class="active" type="button">生成订阅</button>
+      <button id="savedTab" type="button">已生成</button>
+    </nav>
+
+    <section id="generatePanel" class="tab-panel generate-panel">
+      <section class="toolbar">
+        <input id="searchInput" type="search" placeholder="搜索书名、作者或演播者">
+        <button id="searchBtn" class="primary" type="button">搜索</button>
+      </section>
+
+      <section class="options">
+        <label>
+          <span>订阅有效期</span>
+          <select id="expiresSelect">
+            <option value="0">永久</option>
+            <option value="30" selected>30 天</option>
+            <option value="7">7 天</option>
+            <option value="1">1 天</option>
+          </select>
+        </label>
+        <label>
+          <span>音频有效期</span>
+          <select id="mediaExpiresSelect">
+            <option value="0">永久</option>
+            <option value="365" selected>365 天</option>
+            <option value="30">30 天</option>
+            <option value="7">7 天</option>
+          </select>
+        </label>
+        <label>
+          <span>章节数量</span>
+          <input id="chapterLimitInput" type="number" min="1" placeholder="全部">
+        </label>
+        <label>
+          <span>RSS 缓存秒数</span>
+          <input id="cacheSecondsInput" type="number" min="0" max="86400" value="300">
+        </label>
+        <label>
+          <span>音频</span>
+          <select id="mediaSelect">
+            <option value="mp3">MP3</option>
+            <option value="original">原始</option>
+            <option value="wav">WAV</option>
+            <option value="none">不包含</option>
+          </select>
+        </label>
+      </section>
+
+      <section id="status" class="status">加载中</section>
+      <section id="books" class="books"></section>
+    </section>
+
+    <section id="savedPanel" class="tab-panel saved-panel" hidden>
+      <section id="result" class="result" hidden>
+        <div class="result-title" id="resultTitle"></div>
+        <textarea id="resultUrl" readonly></textarea>
+        <div class="actions">
+          <button id="toggleSelectedBtn" type="button" hidden>禁用</button>
+          <button id="deleteSelectedBtn" class="danger" type="button" hidden>删除</button>
+          <button id="copyBtn" class="primary" type="button">复制</button>
+        </div>
+      </section>
+
+      <section class="saved">
+        <div class="section-title">已生成链接</div>
+        <div id="savedLinks" class="saved-links"></div>
+      </section>
+    </section>
+  </main>
+  <script src="./rss.js"></script>
+</body>
+</html>
