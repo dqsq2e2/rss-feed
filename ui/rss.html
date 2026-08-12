@@ -9,11 +9,11 @@
 <body>
   <main class="app">
     <header>
-      <h1>RSS 订阅</h1>
+      <h1 id="title">RSS 订阅</h1>
       <button id="refreshBtn" type="button" title="刷新">刷新</button>
     </header>
 
-    <nav class="tabs" aria-label="RSS 订阅视图">
+    <nav id="tabs" class="tabs" aria-label="RSS 订阅视图">
       <button id="generateTab" class="active" type="button">生成订阅</button>
       <button id="savedTab" type="button">已生成</button>
     </nav>
@@ -26,7 +26,7 @@
 
       <section class="options">
         <label>
-          <span>订阅有效期</span>
+          <span id="expiresLabel">订阅有效期</span>
           <select id="expiresSelect">
             <option value="0">永久</option>
             <option value="30" selected>30 天</option>
@@ -35,7 +35,7 @@
           </select>
         </label>
         <label>
-          <span>音频有效期</span>
+          <span id="mediaExpiresLabel">音频有效期</span>
           <select id="mediaExpiresSelect">
             <option value="0">永久</option>
             <option value="365" selected>365 天</option>
@@ -44,15 +44,15 @@
           </select>
         </label>
         <label>
-          <span>章节数量</span>
+          <span id="chapterLimitLabel">章节数量</span>
           <input id="chapterLimitInput" type="number" min="1" placeholder="全部">
         </label>
         <label>
-          <span>RSS 缓存秒数</span>
+          <span id="cacheSecondsLabel">RSS 缓存秒数</span>
           <input id="cacheSecondsInput" type="number" min="0" max="86400" value="300">
         </label>
         <label>
-          <span>音频</span>
+          <span id="mediaLabel">音频</span>
           <select id="mediaSelect">
             <option value="mp3">MP3</option>
             <option value="original">原始</option>
@@ -78,7 +78,7 @@
       </section>
 
       <section class="saved">
-        <div class="section-title">已生成链接</div>
+        <div id="savedSectionTitle" class="section-title">已生成链接</div>
         <div id="savedLinks" class="saved-links"></div>
       </section>
     </section>

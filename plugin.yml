@@ -1,6 +1,6 @@
 id: rss-feed
 name: RSS Feed
-version: 1.0.1
+version: 1.0.2
 min_core_version: 1.5.0
 admin_only: true
 author: Ting Reader Team
@@ -96,6 +96,7 @@ config_schema:
       placeholder: https://reader.example.com
 permissions:
 - type: books_read
+- type: user_settings_read
 - type: chapters_read
 - type: media_read_url
 - type: plugin_route_sign

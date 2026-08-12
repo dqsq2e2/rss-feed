@@ -9,9 +9,130 @@
   var pendingDeleteId = "";
   var contextBook = null;
   var singleBookMode = false;
+  var language = "zh-CN";
+  var text = {
+    zh: {
+      title: "RSS 订阅",
+      refresh: "刷新",
+      refreshBook: "刷新本书订阅",
+      tabs: "RSS 订阅视图",
+      generateTab: "生成订阅",
+      savedTab: "已生成",
+      generateBookTab: "生成本书订阅",
+      bookLinksTab: "本书链接",
+      searchPlaceholder: "搜索书名、作者或演播者",
+      search: "搜索",
+      expires: "订阅有效期",
+      mediaExpires: "音频有效期",
+      chapters: "章节数量",
+      cacheSeconds: "RSS 缓存秒数",
+      audio: "音频",
+      permanent: "永久",
+      days: " 天",
+      all: "全部",
+      original: "原始",
+      noMedia: "不包含",
+      loading: "加载中",
+      timeout: "请求超时",
+      callFailed: "插件调用失败",
+      unnamedBook: "未命名有声书",
+      currentBook: "当前书籍",
+      loadBookFeed: "加载本书订阅",
+      loadBooks: "加载书籍",
+      bookFeed: " RSS 订阅",
+      chooseBook: "选择一本书生成订阅链接",
+      noBooks: "没有找到书籍",
+      noVisibleBooks: "没有可显示的书籍",
+      generate: "生成",
+      generated: "已生成",
+      savedLinks: "已生成链接",
+      noSavedLinks: "暂无已生成链接",
+      chapterCount: "章节 ",
+      allChapters: "全部章节",
+      noAudio: "无音频",
+      disabled: "已禁用",
+      copy: "复制",
+      enable: "启用",
+      disable: "禁用",
+      delete: "删除",
+      confirmDelete: "确认删除",
+      generateLink: "生成订阅链接",
+      linkGenerated: "订阅链接已生成",
+      linkSuffix: " 的 RSS 链接",
+      linkDisabled: "链接已禁用，无法复制",
+      enableLink: "启用订阅链接",
+      disableLink: "禁用订阅链接",
+      linkEnabled: "订阅链接已启用",
+      linkDisabledDone: "订阅链接已禁用",
+      confirmDeleteHint: "再次点击确认删除，删除后链接将无法继续访问",
+      deleteLink: "删除订阅链接",
+      linkDeleted: "订阅链接已删除",
+      linkCopied: "订阅链接已复制"
+    },
+    en: {
+      title: "RSS Feeds",
+      refresh: "Refresh",
+      refreshBook: "Refresh this book feed",
+      tabs: "RSS feed views",
+      generateTab: "Create feed",
+      savedTab: "Saved",
+      generateBookTab: "Create this book feed",
+      bookLinksTab: "This book",
+      searchPlaceholder: "Search title, author, or narrator",
+      search: "Search",
+      expires: "Feed expiry",
+      mediaExpires: "Audio expiry",
+      chapters: "Chapters",
+      cacheSeconds: "RSS cache seconds",
+      audio: "Audio",
+      permanent: "Never expires",
+      days: " days",
+      all: "All",
+      original: "Original",
+      noMedia: "Exclude",
+      loading: "Loading",
+      timeout: "Request timed out",
+      callFailed: "Plugin call failed",
+      unnamedBook: "Untitled audiobook",
+      currentBook: "Current book",
+      loadBookFeed: "Loading this book feed",
+      loadBooks: "Loading books",
+      bookFeed: " RSS feed",
+      chooseBook: "Choose a book to create a feed",
+      noBooks: "No books found",
+      noVisibleBooks: "No books to show",
+      generate: "Create",
+      generated: "Saved",
+      savedLinks: "Saved feeds",
+      noSavedLinks: "No saved feeds yet",
+      chapterCount: "Chapters: ",
+      allChapters: "All chapters",
+      noAudio: "No audio",
+      disabled: "Disabled",
+      copy: "Copy",
+      enable: "Enable",
+      disable: "Disable",
+      delete: "Delete",
+      confirmDelete: "Confirm delete",
+      generateLink: "Creating feed",
+      linkGenerated: "Feed created",
+      linkSuffix: " RSS feed",
+      linkDisabled: "This feed is disabled and cannot be copied",
+      enableLink: "Enabling feed",
+      disableLink: "Disabling feed",
+      linkEnabled: "Feed enabled",
+      linkDisabledDone: "Feed disabled",
+      confirmDeleteHint: "Click delete again to confirm. The feed will stop working.",
+      deleteLink: "Deleting feed",
+      linkDeleted: "Feed deleted",
+      linkCopied: "Feed copied"
+    }
+  };
 
   var els = {
+    title: document.getElementById("title"),
     refresh: document.getElementById("refreshBtn"),
+    tabs: document.getElementById("tabs"),
     generateTab: document.getElementById("generateTab"),
     savedTab: document.getElementById("savedTab"),
     generatePanel: document.getElementById("generatePanel"),
@@ -23,6 +144,11 @@
     chapterLimit: document.getElementById("chapterLimitInput"),
     cacheSeconds: document.getElementById("cacheSecondsInput"),
     media: document.getElementById("mediaSelect"),
+    expiresLabel: document.getElementById("expiresLabel"),
+    mediaExpiresLabel: document.getElementById("mediaExpiresLabel"),
+    chapterLimitLabel: document.getElementById("chapterLimitLabel"),
+    cacheSecondsLabel: document.getElementById("cacheSecondsLabel"),
+    mediaLabel: document.getElementById("mediaLabel"),
     status: document.getElementById("status"),
     books: document.getElementById("books"),
     result: document.getElementById("result"),
@@ -31,8 +157,64 @@
     copy: document.getElementById("copyBtn"),
     toggleSelected: document.getElementById("toggleSelectedBtn"),
     deleteSelected: document.getElementById("deleteSelectedBtn"),
-    savedLinks: document.getElementById("savedLinks")
+    savedLinks: document.getElementById("savedLinks"),
+    savedSectionTitle: document.getElementById("savedSectionTitle")
   };
+
+  function isEnglish() {
+    return /^en(?:-|$)/i.test(language);
+  }
+
+  function t(key) {
+    var locale = isEnglish() ? text.en : text.zh;
+    return locale[key] || text.zh[key] || key;
+  }
+
+  function applyLanguage(value) {
+    language = value || "zh-CN";
+    document.documentElement.lang = isEnglish() ? "en" : "zh-CN";
+    document.title = t("title");
+    els.title.textContent = t("title");
+    els.refresh.textContent = t("refresh");
+    els.refresh.title = t("refresh");
+    els.tabs.setAttribute("aria-label", t("tabs"));
+    els.search.placeholder = t("searchPlaceholder");
+    els.searchBtn.textContent = t("search");
+    els.expiresLabel.textContent = t("expires");
+    els.mediaExpiresLabel.textContent = t("mediaExpires");
+    els.chapterLimitLabel.textContent = t("chapters");
+    els.chapterLimit.placeholder = t("all");
+    els.cacheSecondsLabel.textContent = t("cacheSeconds");
+    els.mediaLabel.textContent = t("audio");
+    els.savedSectionTitle.textContent = t("savedLinks");
+    els.copy.textContent = t("copy");
+    Array.prototype.forEach.call(els.expires.options, function (option) {
+      option.textContent = option.value === "0" ? t("permanent") : option.value + t("days");
+    });
+    Array.prototype.forEach.call(els.mediaExpires.options, function (option) {
+      option.textContent = option.value === "0" ? t("permanent") : option.value + t("days");
+    });
+    Array.prototype.forEach.call(els.media.options, function (option) {
+      if (option.value === "original") option.textContent = t("original");
+      if (option.value === "none") option.textContent = t("noMedia");
+    });
+    applyMode();
+    renderBooks();
+    renderSavedLinks();
+    updateResultActions(findSavedLink(selectedLinkId));
+    setStatus(t("loading"));
+  }
+
+  function loadLanguage() {
+    return bridgeRequest("host.invoke", {
+      method: "user_settings.get",
+      params: { key: "language" }
+    }).then(function (result) {
+      applyLanguage(result && result.value);
+    }).catch(function () {
+      applyLanguage("zh-CN");
+    });
+  }
 
   function setStatus(text, failed) {
     els.status.textContent = text;
@@ -73,7 +255,7 @@
     return new Promise(function (resolve, reject) {
       var timer = window.setTimeout(function () {
         pending.delete(id);
-        reject(new Error("请求超时"));
+        reject(new Error(t("timeout")));
       }, 30000);
       pending.set(id, {
         resolve: function (value) {
@@ -110,15 +292,17 @@
     if (data.type === "ting-plugin:init") {
       contextBook = extractContextBook(data.context || {});
       singleBookMode = Boolean(contextBook && contextBook.id);
-      applyMode();
-      loadBooks();
+      loadLanguage().then(function () {
+        applyMode();
+        loadBooks();
+      });
       return;
     }
     if (data.type === "ting-plugin:response" && pending.has(data.id)) {
       var callbacks = pending.get(data.id);
       pending.delete(data.id);
       if (data.ok) callbacks.resolve(data.result);
-      else callbacks.reject(new Error(data.error || "插件调用失败"));
+      else callbacks.reject(new Error(data.error || t("callFailed")));
     }
   });
 
@@ -127,7 +311,7 @@
     if (book && (book.id || book.book_id)) {
       return {
         id: book.id || book.book_id,
-        title: book.title || book.name || "未命名有声书",
+        title: book.title || book.name || "",
         author: book.author || "",
         narrator: book.narrator || "",
         library_id: book.library_id || ""
@@ -137,7 +321,7 @@
     if (!bookId) return null;
     return {
       id: bookId,
-      title: context.title || context.book_title || context.name || "未命名有声书",
+      title: context.title || context.book_title || context.name || "",
       author: context.author || "",
       narrator: context.narrator || "",
       library_id: context.library_id || ""
@@ -146,16 +330,16 @@
 
   function applyMode() {
     document.body.classList.toggle("single-book", singleBookMode);
+    els.generateTab.textContent = singleBookMode ? t("generateBookTab") : t("generateTab");
+    els.savedTab.textContent = singleBookMode ? t("bookLinksTab") : t("savedTab");
+    els.refresh.title = singleBookMode ? t("refreshBook") : t("refresh");
     if (singleBookMode) {
-      els.generateTab.textContent = "生成本书订阅";
-      els.savedTab.textContent = "本书链接";
       els.search.value = "";
-      els.refresh.title = "刷新本书订阅";
     }
   }
 
   function loadBooks() {
-    setStatus(singleBookMode ? "加载本书订阅" : "加载书籍");
+    setStatus(singleBookMode ? t("loadBookFeed") : t("loadBooks"));
     invokeTool("rss.state", {
       book_id: singleBookMode && contextBook ? contextBook.id : "",
       search: singleBookMode ? "" : els.search.value,
@@ -176,8 +360,8 @@
         switchTab("generate");
       }
       setStatus(singleBookMode
-        ? ((contextBook && contextBook.title ? contextBook.title : "本书") + " RSS 订阅")
-        : (books.length ? "选择一本书生成订阅链接" : "没有找到书籍"));
+        ? ((contextBook && contextBook.title ? contextBook.title : t("currentBook")) + t("bookFeed"))
+        : (books.length ? t("chooseBook") : t("noBooks")));
     }).catch(function (error) {
       setStatus(error.message || String(error), true);
     });
@@ -212,10 +396,10 @@
       els.books.innerHTML = [
         '<article class="book single-target">',
         '<div>',
-        '<strong>' + escapeHtml(book && book.title ? book.title : "未命名有声书") + '</strong>',
-        '<span>' + escapeHtml(meta || "当前书籍") + '</span>',
+        '<strong>' + escapeHtml(book && book.title ? book.title : t("unnamedBook")) + '</strong>',
+        '<span>' + escapeHtml(meta || t("currentBook")) + '</span>',
         '</div>',
-        '<button type="button" data-single-generate>生成</button>',
+        '<button type="button" data-single-generate>' + t("generate") + '</button>',
         '</article>'
       ].join("");
       var button = els.books.querySelector("button[data-single-generate]");
@@ -225,7 +409,7 @@
       return;
     }
     if (!books.length) {
-      els.books.innerHTML = '<div class="empty">没有可显示的书籍</div>';
+      els.books.innerHTML = '<div class="empty">' + t("noVisibleBooks") + '</div>';
       return;
     }
     els.books.innerHTML = books.map(function (book, index) {
@@ -236,7 +420,7 @@
         '<strong>' + escapeHtml(book.title) + '</strong>',
         '<span>' + escapeHtml(meta || book.id) + '</span>',
         '</div>',
-        '<button type="button" data-index="' + index + '">生成</button>',
+        '<button type="button" data-index="' + index + '">' + t("generate") + '</button>',
         '</article>'
       ].join("");
     }).join("");
@@ -250,10 +434,10 @@
   }
 
   function renderSavedLinks() {
-    var baseTitle = singleBookMode ? "本书链接" : "已生成";
+    var baseTitle = singleBookMode ? t("bookLinksTab") : t("savedTab");
     els.savedTab.textContent = savedLinks.length ? baseTitle + " (" + savedLinks.length + ")" : baseTitle;
     if (!savedLinks.length) {
-      els.savedLinks.innerHTML = '<div class="empty">暂无已生成链接</div>';
+      els.savedLinks.innerHTML = '<div class="empty">' + t("noSavedLinks") + '</div>';
       if (selectedLinkId) clearSelectedLink();
       return;
     }
@@ -261,19 +445,19 @@
       var disabled = link.enabled === false;
       var meta = [
         expiryText(link.expires_days),
-        link.chapter_limit ? "章节 " + link.chapter_limit : "全部章节",
-        link.media === false ? "无音频" : String(link.transcode || "original").toUpperCase()
+        link.chapter_limit ? t("chapterCount") + link.chapter_limit : t("allChapters"),
+        link.media === false ? t("noAudio") : String(link.transcode || "original").toUpperCase()
       ].join(" / ");
       return [
         '<article class="saved-link' + (disabled ? ' disabled' : '') + '">',
         '<div>',
-        '<strong>' + escapeHtml(link.title || "未命名有声书") + (disabled ? ' <em>已禁用</em>' : '') + '</strong>',
+        '<strong>' + escapeHtml(link.title || t("unnamedBook")) + (disabled ? ' <em>' + t("disabled") + '</em>' : '') + '</strong>',
         '<span>' + escapeHtml(meta) + '</span>',
         '</div>',
         '<div class="saved-link-actions">',
-        '<button type="button" data-action="copy" data-saved-index="' + index + '"' + (disabled ? ' disabled' : '') + '>复制</button>',
-        '<button type="button" data-action="toggle" data-saved-index="' + index + '">' + (disabled ? '启用' : '禁用') + '</button>',
-        '<button class="danger" type="button" data-action="delete" data-saved-index="' + index + '">' + (pendingDeleteId === link.id ? '确认删除' : '删除') + '</button>',
+        '<button type="button" data-action="copy" data-saved-index="' + index + '"' + (disabled ? ' disabled' : '') + '>' + t("copy") + '</button>',
+        '<button type="button" data-action="toggle" data-saved-index="' + index + '">' + (disabled ? t("enable") : t("disable")) + '</button>',
+        '<button class="danger" type="button" data-action="delete" data-saved-index="' + index + '">' + (pendingDeleteId === link.id ? t("confirmDelete") : t("delete")) + '</button>',
         '</div>',
         '</article>'
       ].join("");
@@ -299,7 +483,7 @@
   }
 
   function signBook(book) {
-    setStatus("生成订阅链接");
+    setStatus(t("generateLink"));
     var media = els.media.value;
     invokeTool("rss.sign_book_feed", {
       book_id: book.id,
@@ -314,7 +498,7 @@
       savedLinks = result.saved_links || savedLinks;
       showGeneratedResult(result, book);
       renderSavedLinks();
-      setStatus("订阅链接已生成");
+      setStatus(t("linkGenerated"));
     }).catch(function (error) {
       setStatus(error.message || String(error), true);
     });
@@ -325,7 +509,7 @@
     var link = result.saved_link || null;
     switchTab("saved");
     els.result.hidden = false;
-    els.resultTitle.textContent = (book.title || "未命名有声书") + " 的 RSS 链接";
+    els.resultTitle.textContent = (book.title || t("unnamedBook")) + t("linkSuffix");
     els.resultUrl.value = result.url || result.signed_url || "";
     selectedLinkId = link && link.id ? link.id : "";
     updateResultActions(link);
@@ -335,7 +519,7 @@
   function showSavedLink(link) {
     switchTab("saved");
     els.result.hidden = false;
-    els.resultTitle.textContent = (link.title || "未命名有声书") + " 的 RSS 链接";
+    els.resultTitle.textContent = (link.title || t("unnamedBook")) + t("linkSuffix");
     els.resultUrl.value = link.url || "";
     selectedLinkId = link.id || "";
     updateResultActions(link);
@@ -357,8 +541,8 @@
     els.deleteSelected.hidden = !hasLink;
     els.toggleSelected.disabled = !hasLink;
     els.deleteSelected.disabled = !hasLink;
-    els.toggleSelected.textContent = disabled ? "启用" : "禁用";
-    els.deleteSelected.textContent = hasLink && pendingDeleteId === link.id ? "确认删除" : "删除";
+    els.toggleSelected.textContent = disabled ? t("enable") : t("disable");
+    els.deleteSelected.textContent = hasLink && pendingDeleteId === link.id ? t("confirmDelete") : t("delete");
     els.result.classList.toggle("disabled", disabled);
   }
 
@@ -371,7 +555,7 @@
   function copyResult() {
     var selected = findSavedLink(selectedLinkId);
     if (selected && selected.enabled === false) {
-      setStatus("链接已禁用，无法复制", true);
+      setStatus(t("linkDisabled"), true);
       return;
     }
     copyText(els.resultUrl.value);
@@ -388,7 +572,7 @@
   function setLinkEnabled(link, enabled) {
     if (!link || !link.id) return;
     pendingDeleteId = "";
-    setStatus(enabled ? "启用订阅链接" : "禁用订阅链接");
+    setStatus(enabled ? t("enableLink") : t("disableLink"));
     invokeTool(enabled ? "rss.enable_link" : "rss.disable_link", {
       link_id: link.id
     }).then(function (result) {
@@ -396,7 +580,7 @@
       renderSavedLinks();
       var selected = findSavedLink(selectedLinkId);
       if (selected) showSavedLink(selected);
-      setStatus(enabled ? "订阅链接已启用" : "订阅链接已禁用");
+      setStatus(enabled ? t("linkEnabled") : t("linkDisabledDone"));
     }).catch(function (error) {
       setStatus(error.message || String(error), true);
     });
@@ -409,7 +593,7 @@
       renderSavedLinks();
       var selected = findSavedLink(selectedLinkId);
       updateResultActions(selected);
-      setStatus("再次点击确认删除，删除后链接将无法继续访问", true);
+      setStatus(t("confirmDeleteHint"), true);
       return;
     }
     deleteLink(link);
@@ -417,7 +601,7 @@
 
   function deleteLink(link) {
     if (!link || !link.id) return;
-    setStatus("删除订阅链接");
+    setStatus(t("deleteLink"));
     invokeTool("rss.delete_link", {
       link_id: link.id
     }).then(function (result) {
@@ -429,7 +613,7 @@
         if (savedLinks.length) showSavedLink(savedLinks[0]);
         else clearSelectedLink();
       }
-      setStatus("订阅链接已删除");
+      setStatus(t("linkDeleted"));
     }).catch(function (error) {
       pendingDeleteId = "";
       renderSavedLinks();
@@ -446,14 +630,14 @@
     els.resultUrl.select();
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(value).then(function () {
-        setStatus("订阅链接已复制");
+        setStatus(t("linkCopied"));
       }).catch(function () {
         document.execCommand("copy");
-        setStatus("订阅链接已复制");
+        setStatus(t("linkCopied"));
       });
     } else {
       document.execCommand("copy");
-      setStatus("订阅链接已复制");
+      setStatus(t("linkCopied"));
     }
   }
 
@@ -465,7 +649,7 @@
   }
 
   function expiryText(days) {
-    return Number(days) === 0 ? "永久" : String(days || 30) + " 天";
+    return Number(days) === 0 ? t("permanent") : String(days || 30) + t("days");
   }
 
   function markTouched(event) {
