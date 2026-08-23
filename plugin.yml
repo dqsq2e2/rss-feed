@@ -1,6 +1,6 @@
 id: rss-feed
 name: RSS Feed
-version: 1.0.2
+version: 1.0.3
 min_core_version: 1.5.0
 admin_only: true
 author: Ting Reader Team
@@ -15,7 +15,9 @@ capabilities:
 - id: rss.panel
   kind: ui_extension
   invoke: openRssPanel
-  slot: global.floating_action
+  slots:
+  - app.sidebar_page
+  - global.floating_action
   title:
     zh: RSS 订阅
     en: RSS Feeds
@@ -24,6 +26,11 @@ capabilities:
   render:
     mode: web_container
     entry: ui/rss.html
+    bridge:
+      capabilities:
+      - rss.tools
+      host_methods:
+      - user_settings.get
   contexts:
   - global
 - id: rss.book_panel
@@ -38,6 +45,11 @@ capabilities:
   render:
     mode: web_container
     entry: ui/rss.html
+    bridge:
+      capabilities:
+      - rss.tools
+      host_methods:
+      - user_settings.get
   contexts:
   - book
 - id: rss.feed

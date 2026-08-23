@@ -2,6 +2,7 @@
   "use strict";
 
   var pending = new Map();
+  var bridgeToken = null;
   var books = [];
   var savedLinks = [];
   var initialized = false;
@@ -251,6 +252,9 @@
   }
 
   function bridgeRequest(method, params) {
+    if (!bridgeToken) {
+      return Promise.reject(new Error(t("loading")));
+    }
     var id = Date.now() + "-" + Math.random().toString(16).slice(2);
     return new Promise(function (resolve, reject) {
       var timer = window.setTimeout(function () {
@@ -267,7 +271,13 @@
           reject(error);
         }
       });
-      window.parent.postMessage({ type: "ting-plugin:request", id: id, method: method, params: params }, "*");
+      window.__TING_PLUGIN_BRIDGE__.postMessage({
+        type: "ting-plugin:request",
+        id: id,
+        method: method,
+        params: params,
+        bridge_token: bridgeToken
+      });
     });
   }
 
@@ -287,9 +297,11 @@
   }
 
   window.addEventListener("message", function (event) {
+    if (event.source !== window) return;
     var data = event.data;
     if (!data || typeof data !== "object") return;
     if (data.type === "ting-plugin:init") {
+      bridgeToken = data.bridgeToken || null;
       contextBook = extractContextBook(data.context || {});
       singleBookMode = Boolean(contextBook && contextBook.id);
       loadLanguage().then(function () {
@@ -298,7 +310,7 @@
       });
       return;
     }
-    if (data.type === "ting-plugin:response" && pending.has(data.id)) {
+    if (data.type === "ting-plugin:response" && data.bridge_token === bridgeToken && pending.has(data.id)) {
       var callbacks = pending.get(data.id);
       pending.delete(data.id);
       if (data.ok) callbacks.resolve(data.result);

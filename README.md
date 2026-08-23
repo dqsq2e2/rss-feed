@@ -1,8 +1,12 @@
 # RSS Feed Plugin
 
-通过 Ting Reader 的能力化插件系统发布签名 RSS。插件只声明 `http_route`
+通过 Ting Reader 的能力化插件系统发布签名 RSS，并提供受控的订阅管理 UI。
 
-插件也提供一个“RSS 订阅”面板：在插件入口中打开后，可搜索书籍、选择单本书并复制该书的 RSS 订阅链接。
+## 安装
+
+从 GitHub Releases 下载与当前版本对应的 `.tr` 包，在 Ting Reader 插件管理页上传安装。
+
+插件提供“RSS 订阅”页面和书籍详情入口，可搜索书籍、选择单本书并复制该书的 RSS 订阅链接。UI 已适配最新 Web Container Bridge，通过 manifest 白名单调用 `rss.tools` 和 `user_settings.get`。
 
 ## 路由
 
@@ -66,3 +70,7 @@ Content-Type: application/json
 ## 说明
 
 单本书 RSS 会把章节作为 item，并通过 HostGateway `media.get_signed_url` 输出签名媒体 `enclosure`。章节数量留空时不限制，插件会分页读取整本书的章节。
+
+## 自动打包
+
+仓库内置 GitHub Actions：push / pull request 会校验 manifest 并构建 `.tr` artifact；推送 `v*` 标签会创建对应的 GitHub Release。
