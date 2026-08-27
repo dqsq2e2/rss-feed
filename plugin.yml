@@ -1,6 +1,6 @@
 id: rss-feed
 name: RSS Feed
-version: 1.0.3
+version: 1.0.4
 min_core_version: 1.5.0
 admin_only: true
 author: Ting Reader Team
