@@ -1,7 +1,7 @@
 id: rss-feed
 name: RSS Feed
-version: 1.0.4
-min_core_version: 1.5.0
+version: 2.0.1
+min_core_version: 2.0.0
 admin_only: true
 author: Ting Reader Team
 description:
@@ -14,7 +14,6 @@ entry_point: plugin.js
 capabilities:
 - id: rss.panel
   kind: ui_extension
-  invoke: openRssPanel
   slots:
   - app.sidebar_page
   - global.floating_action
@@ -35,8 +34,6 @@ capabilities:
   - global
 - id: rss.book_panel
   kind: ui_extension
-  invoke: openRssPanel
-  slot: book.detail_action
   title:
     zh: RSS 订阅
     en: RSS Feed
@@ -52,48 +49,76 @@ capabilities:
       - user_settings.get
   contexts:
   - book
+  slots:
+  - book.detail_action
 - id: rss.feed
   kind: http_route
-  invoke: generateRssFeed
   route:
     method: GET
-    path: /rss/:library_id.xml
+    path: /rss/library/{library_id}/feed.xml
     auth: signed
 - id: rss.book
   kind: http_route
-  invoke: generateBookRssFeed
   route:
     method: GET
-    path: /rss/book/:book_id.xml
+    path: /rss/book/{book_id}/feed.xml
     auth: signed
 - id: rss.cover
   kind: http_route
-  invoke: generateCoverImage
   route:
     method: GET
-    path: /rss/cover/:book_id
+    path: /rss/cover/{book_id}
     auth: signed
 - id: rss.media
   kind: http_route
-  invoke: redirectChapterMedia
   route:
     method: GET
-    path: /rss/media/:chapter_id
+    path: /rss/media/{chapter_id}
     auth: signed
 - id: rss.tools
   kind: tool_provider
-  invoke: invokeTool
   tools:
   - name: rss.state
-    description: List accessible books for the RSS subscription UI.
+    description:
+      en: List accessible books for the RSS subscription UI.
+    input_schema:
+      type: object
+    output_schema:
+      type: object
+    side_effects: false
   - name: rss.sign_book_feed
-    description: Generate a signed RSS subscription URL for a selected book.
+    description:
+      en: Generate a signed RSS subscription URL for a selected book.
+    input_schema:
+      type: object
+    output_schema:
+      type: object
+    side_effects: true
   - name: rss.disable_link
-    description: Disable a generated RSS subscription URL.
+    description:
+      en: Disable a generated RSS subscription URL.
+    input_schema:
+      type: object
+    output_schema:
+      type: object
+    side_effects: true
   - name: rss.enable_link
-    description: Re-enable a generated RSS subscription URL.
+    description:
+      en: Re-enable a generated RSS subscription URL.
+    input_schema:
+      type: object
+    output_schema:
+      type: object
+    side_effects: true
   - name: rss.delete_link
-    description: Delete and revoke a generated RSS subscription URL.
+    description:
+      en: Delete and revoke a generated RSS subscription URL.
+    input_schema:
+      type: object
+    output_schema:
+      type: object
+    side_effects: true
+  invoke: invokeTool
 config_schema:
   type: object
   properties:
@@ -104,7 +129,8 @@ config_schema:
         en: Public base URL
       description:
         zh: 可选。填写反向代理后的公开地址，例如 https://reader.example.com；留空时从请求头推断。
-        en: Optional public origin, such as https://reader.example.com. When empty, it is inferred from request headers.
+        en: Optional public origin, such as https://reader.example.com. When empty,
+          it is inferred from request headers.
       placeholder: https://reader.example.com
 permissions:
 - type: books_read
@@ -115,4 +141,4 @@ permissions:
 - type: cache_read
 - type: cache_write
 - type: file_read
-  value: .
+  path: .

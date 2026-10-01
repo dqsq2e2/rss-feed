@@ -284,7 +284,7 @@
   function invokeTool(name, input) {
     return bridgeRequest("capability.invoke", {
       capabilityId: "rss.tools",
-      params: { name: name, input: input || {} }
+      params: { tool_name: name, params: input || {} }
     });
   }
 

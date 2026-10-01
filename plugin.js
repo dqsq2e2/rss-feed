@@ -1,4 +1,5 @@
 "use strict";
+import { success, readResource, encodeBase64 } from "./sdk.mjs";
 
 const PLUGIN_NAME = "Ting Reader RSS Feed Plugin";
 const DEFAULT_FEED_TITLE = "Ting Reader";
@@ -21,8 +22,8 @@ async function openRssPanel() {
 }
 
 async function invokeTool(params) {
-  const name = params?.name || params?.tool || "rss.state";
-  const input = params?.input || params?.params || {};
+  const name = params?.tool_name;
+  const input = params?.params || {};
 
   switch (name) {
     case "rss.state":
@@ -82,7 +83,7 @@ async function signBookFeed(input) {
   const cacheSeconds = integerValue(input?.cache_seconds, config.cacheMaxAgeSeconds, 0, 86400);
   const media = input?.media !== false;
   const transcode = normalizeMediaTranscode(firstText(input?.transcode, config.mediaTranscode));
-  const path = `/rss/book/${bookId}.xml`;
+  const path = `/rss/book/${bookId}/feed.xml`;
   const linkId = createLinkId();
   const signed = await hostInvoke("plugin_routes.sign", {
     method: "GET",
@@ -143,7 +144,7 @@ async function generateRssFeed(request) {
   try {
     const config = readConfig();
     const query = parseQuery(request?.query || "");
-    const routeLibraryId = String(request?.params?.library_id || "all").replace(/\.xml$/i, "");
+    const routeLibraryId = String(request?.params?.library_id || "all");
     const libraryId = ALL_LIBRARY_ALIASES.has(routeLibraryId.toLowerCase()) ? "" : routeLibraryId;
     const limit = optionalIntegerValue(query.limit, null, 1, 1000000);
     const offset = integerValue(query.offset, 0, 0, 1000000);
@@ -209,14 +210,14 @@ async function generateBookRssFeed(request) {
   try {
     const config = readConfig();
     const query = parseQuery(request?.query || "");
-    const bookId = String(request?.params?.book_id || "").replace(/\.xml$/i, "");
+    const bookId = String(request?.params?.book_id || "");
     if (!bookId) {
       throw new Error("Missing book_id");
     }
 
     await requireActiveSavedLink(query, {
       book_id: bookId,
-      path: `/rss/book/${bookId}.xml`,
+      path: `/rss/book/${bookId}/feed.xml`,
     });
 
     const book = await hostInvoke("books.get", { book_id: bookId });
@@ -281,7 +282,7 @@ async function generateCoverImage(request) {
     if (query.link_id) {
       await requireActiveSavedLink(query, {
         book_id: bookId,
-        path: `/rss/book/${bookId}.xml`,
+        path: `/rss/book/${bookId}/feed.xml`,
       });
     }
 
@@ -783,7 +784,7 @@ async function readLocalCoverImage(book, cover) {
 
   for (const path of bookCandidates) {
     try {
-      const file = await hostInvoke("library.file.read", {
+      const file = await hostInvoke("library.file.open", {
         library_id: libraryId,
         book_id: firstText(book?.id, ""),
         relative_to: "book",
@@ -791,7 +792,7 @@ async function readLocalCoverImage(book, cover) {
       });
       return {
         path,
-        data_base64: firstText(file?.data_base64, ""),
+        data_base64: encodeBase64(await readResource(file.resource, file.length)),
         content_type: contentTypeFromPath(path),
       };
     } catch (error) {
@@ -801,13 +802,13 @@ async function readLocalCoverImage(book, cover) {
 
   for (const path of candidates) {
     try {
-      const file = await hostInvoke("library.file.read", {
+      const file = await hostInvoke("library.file.open", {
         library_id: libraryId,
         path,
       });
       return {
         path,
-        data_base64: firstText(file?.data_base64, ""),
+        data_base64: encodeBase64(await readResource(file.resource, file.length)),
         content_type: contentTypeFromPath(path),
       };
     } catch (error) {
@@ -995,7 +996,7 @@ function selfUrl(request, origin) {
   const prefix = access === "signed" || access === "public"
     ? "/api/v1/public/plugin-routes"
     : "/api/v1/plugin-routes";
-  const path = firstText(request?.path, "/rss/all.xml");
+  const path = firstText(request?.path, "/rss/library/all/feed.xml");
   const query = firstText(request?.query, "");
   return absoluteUrl(origin, `${prefix}${path}${query ? `?${query}` : ""}`);
 }
@@ -1439,9 +1440,22 @@ function normalizeMediaTranscode(value) {
   return "mp3";
 }
 
-globalThis.openRssPanel = openRssPanel;
-globalThis.invokeTool = invokeTool;
-globalThis.generateRssFeed = generateRssFeed;
-globalThis.generateBookRssFeed = generateBookRssFeed;
-globalThis.generateCoverImage = generateCoverImage;
-globalThis.redirectChapterMedia = redirectChapterMedia;
+export async function open(params) {
+  return success(await openRssPanel(params));
+}
+export async function invokeToolSdk(params) {
+  return success(await invokeTool(params));
+}
+export { invokeToolSdk as invokeTool };
+export async function handle(request) {
+  return success(await routeHandler(request));
+}
+async function routeHandler(request) {
+  switch (request?.capability_id) {
+    case "rss.feed": return generateRssFeed(request);
+    case "rss.book": return generateBookRssFeed(request);
+    case "rss.cover": return generateCoverImage(request);
+    case "rss.media": return redirectChapterMedia(request);
+    default: throw new Error("Undeclared RSS route");
+  }
+}

@@ -10,9 +10,9 @@
 
 ## 路由
 
-- 全部可访问书籍：`/rss/all.xml`
-- 指定媒体库：`/rss/{library_id}.xml`
-- 指定单本书：`/rss/book/{book_id}.xml`
+- 全部可访问书籍：`/rss/library/all/feed.xml`
+- 指定媒体库：`/rss/library/{library_id}/feed.xml`
+- 指定单本书：`/rss/book/{book_id}/feed.xml`
 - 本地封面代理：`/rss/cover/{book_id}`
 
 生成给外部 RSS 阅读器使用的签名 URL：
@@ -23,7 +23,7 @@ Content-Type: application/json
 
 {
   "method": "GET",
-  "path": "/rss/all.xml",
+  "path": "/rss/library/all/feed.xml",
   "expires_in_seconds": 2592000,
   "bind_current_user": true
 }
@@ -37,7 +37,7 @@ Content-Type: application/json
 
 {
   "method": "GET",
-  "path": "/rss/book/book-id.xml",
+  "path": "/rss/book/book-id/feed.xml",
   "expires_in_seconds": 2592000,
   "bind_current_user": true
 }
