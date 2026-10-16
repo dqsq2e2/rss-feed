@@ -1,5 +1,5 @@
 "use strict";
-import { success, readResource, encodeBase64 } from "./sdk.mjs";
+import { success, readResource, encodeBase64, errorInfo } from "./sdk.mjs";
 
 const PLUGIN_NAME = "Ting Reader RSS Feed Plugin";
 const DEFAULT_FEED_TITLE = "Ting Reader";
@@ -471,7 +471,7 @@ async function loadChapterPreview(book, previewCount) {
     };
   } catch (error) {
     Ting?.log?.warn?.(`Failed to load chapter preview for ${book.id}: ${error}`);
-    return { items: [], total: 0, error: String(error) };
+    return { items: [], total: 0, error: errorInfo(error) };
   }
 }
 
